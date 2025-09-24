@@ -1,0 +1,178 @@
+basePath: /
+definitions:
+  pokemon-api_internal_core_domain.CreatePokemonRequest:
+    properties:
+      name:
+        type: string
+      type1:
+        type: string
+      type2:
+        type: string
+    required:
+    - name
+    - type1
+    type: object
+  pokemon-api_internal_core_domain.FlexiblePokemonRequest:
+    properties:
+      name:
+        type: string
+      pokemon:
+        additionalProperties: true
+        type: object
+      type1:
+        type: string
+      type2:
+        type: string
+    required:
+    - type1
+    type: object
+  pokemon-api_internal_core_domain.Pokemon:
+    properties:
+      base_experience:
+        type: integer
+      created_at:
+        type: string
+      height:
+        description: External API data (3 additional fields)
+        type: integer
+      id:
+        type: integer
+      name:
+        description: User-provided basic data (3 fields)
+        type: string
+      type1:
+        type: string
+      type2:
+        type: string
+      updated_at:
+        type: string
+      weight:
+        type: integer
+    required:
+    - type1
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A REST API for managing Pokemon data with PokeAPI integration
+  title: Pokemon API
+  version: "1.0"
+paths:
+  /api/v1/pokemon:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all Pokemon from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/pokemon-api_internal_core_domain.Pokemon'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all Pokemon
+      tags:
+      - pokemon
+    post:
+      consumes:
+      - application/json
+      description: Create a new Pokemon supporting both direct name and nested pokemon.name
+        formats
+      parameters:
+      - description: Pokemon data with flexible name
+        in: body
+        name: pokemon
+        required: true
+        schema:
+          $ref: '#/definitions/pokemon-api_internal_core_domain.FlexiblePokemonRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/pokemon-api_internal_core_domain.Pokemon'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new Pokemon with flexible name format
+      tags:
+      - pokemon
+  /api/v1/pokemon/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a Pokemon by its ID
+      parameters:
+      - description: Pokemon ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pokemon-api_internal_core_domain.Pokemon'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Pokemon by ID
+      tags:
+      - pokemon
+  /health:
+    get:
+      description: Check if the API is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check endpoint
+      tags:
+      - health
+swagger: "2.0"

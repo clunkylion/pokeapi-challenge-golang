@@ -1,0 +1,112 @@
+@startuml Pokemon API - Hexagonal Architecture
+
+!theme plain
+skinparam package {
+  BackgroundColor LightBlue
+  BorderColor Navy
+  FontSize 12
+}
+skinparam component {
+  BackgroundColor White
+  BorderColor Black
+}
+skinparam database {
+  BackgroundColor LightGreen
+  BorderColor DarkGreen
+}
+
+title Pokemon API - Hexagonal Architecture
+
+left to right direction
+
+' External Actors
+actor "API Client" as client
+cloud "PokeAPI" as pokeapi
+database "PostgreSQL" as db
+
+' Outer Layer - Adapters
+package "Adapters (Outer Layer)" {
+  component "HTTP Handlers" as handlers {
+    [Pokemon Handler]
+    [Health Handler]
+  }
+
+  component "External Clients" as external {
+    [PokeAPI Client]
+  }
+
+  component "Repositories" as repos {
+    [Pokemon Repository]
+  }
+}
+
+' Inner Layer - Core Business Logic
+package "Core (Inner Layer)" {
+  component "Domain" as domain {
+    [Pokemon Entity]
+    [Request/Response DTOs]
+  }
+
+  component "Ports" as ports {
+    [Pokemon Service Interface]
+    [Repository Interface]
+    [API Client Interface]
+  }
+
+  component "Services" as services {
+    [Pokemon Service]
+  }
+}
+
+' Framework & Infrastructure
+package "Infrastructure" {
+  component "Gin Router" as gin
+  component "GORM" as gorm
+  component "HTTP Client" as httpclient
+  component "Swagger" as swagger
+}
+
+' Connections - Client to API
+client --> gin : HTTP Requests
+gin --> handlers : Route to handlers
+
+' Connections - Handlers to Core
+handlers --> services : Business Logic
+services --> ports : Implements interfaces
+
+' Connections - Core to External
+services --> repos : Data persistence
+services --> external : External API calls
+
+' Connections - Adapters to Infrastructure
+repos --> gorm : Database operations
+external --> httpclient : HTTP requests
+handlers --> swagger : Documentation
+
+' Connections - Infrastructure to External
+gorm --> db : SQL queries
+httpclient --> pokeapi : REST calls
+
+' Dependency Flow (Inward)
+note right of services
+  **Core Business Rules:**
+  - No duplicate Pokemon names
+  - External data enrichment required
+  - Flexible name parsing
+  - Input validation
+end note
+
+note bottom of ports
+  **Dependency Inversion:**
+  Core depends on abstractions (interfaces)
+  not concrete implementations
+end note
+
+note left of handlers
+  **Adapters translate between:**
+  - HTTP ↔ Domain objects
+  - External APIs ↔ Domain objects
+  - Database ↔ Domain objects
+end note
+
+@enduml

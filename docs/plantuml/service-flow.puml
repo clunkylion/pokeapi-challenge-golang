@@ -1,0 +1,61 @@
+@startuml Pokemon Service Flow
+
+!theme plain
+skinparam activity {
+  BackgroundColor LightBlue
+  BorderColor Navy
+  FontSize 12
+}
+
+title Pokemon Service - Main Flow
+
+start
+
+:Client sends request;
+
+switch (Request type?)
+  case (Create Pokemon)
+    :Extract pokemon name;
+
+    if (Name valid?) then (yes)
+      :Check if exists in DB;
+
+      if (Already exists?) then (yes)
+        :Return error "already exists";
+        stop
+      else (no)
+        :Call PokeAPI;
+
+        if (PokeAPI success?) then (yes)
+          :Create Pokemon entity;
+          :Save to database;
+          :Return created Pokemon;
+          stop
+        else (no)
+          :Return error "not found";
+          stop
+        endif
+      endif
+    else (no)
+      :Return error "name required";
+      stop
+    endif
+
+  case (Get by ID)
+    :Query database by ID;
+
+    if (Found?) then (yes)
+      :Return Pokemon;
+    else (no)
+      :Return error "not found";
+    endif
+    stop
+
+  case (List All)
+    :Query all Pokemon;
+    :Return list;
+    stop
+
+endswitch
+
+@enduml
